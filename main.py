@@ -1,10 +1,12 @@
 import pygame
 import os
+
 pygame.font.init()
+pygame.mixer.init()
 
 WIDTH, HEIGHT = 900, 500    # Dimensions of window
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Spaceships!") # Sets window title
+pygame.display.set_caption("Zap Zoop Battle") # Sets window title
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -30,12 +32,24 @@ RED_SPACESHIP = pygame.transform.rotate(pygame.transform.scale(RED_SPACESHIP_IMA
 SPACE = pygame.transform.scale(pygame.image.load(os.path.join("Assets", "space.png")), (WIDTH, HEIGHT))
 
 WINNER_FONT = pygame.font.SysFont("impact", 130)
+SCORE_FONT = pygame.font.SysFont("helvetica", 20)
+
+BULLET_HIT_SOUND = pygame.mixer.Sound(os.path.join("Assets", "Grenade+1.mp3"))
+BULLET_FIRE_SOUND = pygame.mixer.Sound(os.path.join("Assets", "Gun+Silencer.mp3"))
+
+class Scores:
+    red_score = 0
+    yellow_score = 0
 
 def draw_window(red, yellow, red_bullets, yellow_bullets, red_hp, yellow_hp):
     WIN.blit(SPACE, (0, 0))
     pygame.draw.rect(WIN, WHITE, BORDER)
     WIN.blit(YELLOW_SPACESHIP, (yellow.x, yellow.y))      # When you want to draw surfaces onto screen (ie. text/images) order of drawing matters, can draw on top of other surfaces
     WIN.blit(RED_SPACESHIP, (red.x, red.y))
+    red_scoreboard = SCORE_FONT.render(f"ROUNDS WON: {Scores.red_score}", 1, WHITE)
+    WIN.blit(red_scoreboard, (10, 10))
+    yellow_scoreboard = SCORE_FONT.render(f"ROUNDS WON: {Scores.yellow_score}", 1, WHITE)
+    WIN.blit(yellow_scoreboard, (WIDTH - yellow_scoreboard.get_width() - 10, 10))   
 
     red_hp_white = pygame.Rect(red.x, red.y - 15, red.width, 7)
     pygame.draw.rect(WIN, WHITE, red_hp_white)
@@ -94,7 +108,7 @@ def draw_winner(text):
     WIN.blit(draw_text, (WIDTH//2 - draw_text.get_width()//2, HEIGHT//2 - draw_text.get_height()//2))
     pygame.display.update()
     pygame.time.delay(5000)
-
+    
 def main():
     red = pygame.Rect(WIDTH - 100 - SPACESHIP_HEIGHT, 300, SPACESHIP_HEIGHT, SPACESHIP_WIDTH) # x position, y position, width, height
     yellow = pygame.Rect(100, 300, SPACESHIP_HEIGHT, SPACESHIP_WIDTH)
@@ -120,19 +134,25 @@ def main():
                 if event.key == pygame.K_TAB and len(yellow_bullets) < MAX_BULLETS:
                     bullet = pygame.Rect(yellow.x + yellow.width, yellow.y + yellow.height//2 - 2, 10, 5)
                     yellow_bullets.append(bullet)
+                    BULLET_FIRE_SOUND.play()
                     
                 if event.key == pygame.K_COMMA and len(red_bullets) < MAX_BULLETS:
                     bullet = pygame.Rect(red.x, red.y + red.height//2 - 2, 10, 5)
                     red_bullets.append(bullet)
+                    BULLET_FIRE_SOUND.play()
                 
             if event.type == RED_HIT:
                 red_hp -= HP_PER_HIT
+                BULLET_HIT_SOUND.play()
                 if red_hp <= 0:
+                    Scores.red_score += 1
                     winner_text = "YELLOW WINS!"
 
             if event.type == YELLOW_HIT:
                 yellow_hp -= HP_PER_HIT
+                BULLET_HIT_SOUND.play()
                 if yellow_hp <= 0:
+                    Scores.yellow_score += 1
                     winner_text = "RED WINS!"
 
         if winner_text != "":
@@ -148,6 +168,7 @@ def main():
     
         draw_window(red, yellow, red_bullets, yellow_bullets, red_hp, yellow_hp)    
     
+    pygame.event.clear()
     main()
 
 if __name__ == "__main__":
