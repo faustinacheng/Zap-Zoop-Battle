@@ -1,6 +1,6 @@
 <h1>Zap Zoop Battle: The Spaceship Game</h1>
 
-A local 2-player spaceship battle game, complete with sound effects.
+A local 2-player intergalactic battle game, complete with sound effects.
 
 <br>
 <h2><b>Controls:</b><br></h2>
